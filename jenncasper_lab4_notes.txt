@@ -1,0 +1,336 @@
+SETUP:
+
+Software for the mac:
+- Adobe Brackets text editor
+- JDK 8 102
+- Spark 2.0.1
+- Anaconda 3.4.2
+- Scala 2.11.8
+
+$ echo $SPARK_HOME
+/Users/jcasper/spark201
+
+$ cd $SPARK_HOME
+$ ls
+LICENSE		R		RELEASE		conf		examples	licenses	sbin
+NOTICE		README.md	bin		data		jars		python		yarn
+
+$ vim ~/.bash_profile 
+# environment variables
+export SPARK_HOME=/Users/jcasper/spark201
+export PATH=$SPARK_HOME:$PATH
+
+# Spark location in path
+export PATH="/Users/jcasper/spark201/bin:$PATH"
+
+# added by Anaconda3 4.2.0 installer
+export PATH="/Users/jcasper/anaconda/bin:$PATH"
+
+$ which spark-shell
+/Users/jcasper/spark201/bin/spark-shell
+$ which pyspark
+/Users/jcasper/spark201/bin/pyspark
+$ which spark-sql
+/Users/jcasper/spark201/bin/spark-sql
+$ which python
+/Users/jcasper/anaconda/bin/python
+
+$ cat x* > crimes.csv.gz
+$ gunzip -k crimves.csv.gz
+$ ls
+crimes.csv	old
+$ du -s crimes.csv 
+2688712	crimes.csv
+$ wc -l crimes.csv 
+5862796 crimes.csv
+
+STEP 1: START PYSPARK
+
+>>> x = [1,2,3,4,5,6,7,8,9];
+>>> print x
+[1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> len(x)
+9
+>>> sc
+<pyspark.context.SparkContext object at 0x108c3aa90>
+
+>>> distData = sc.parallelize(x);
+>>> print distData;
+ParallelCollectionRDD[0] at parallelize at PythonRDD.scala:475
+>>> len(distData);
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: object of type 'RDD' has no len()
+## The error states a RDD has no len(). Being the RDD is parallelized, finding len isn't as straightforward.
+>>> nx=distData.count()
+>>> print nx;
+9
+
+STEP 2: FILE AND COUNT THE ROWS
+
+>>> crimedata = sc.textFile("file:///Users/jcasper/Documents/Education/UCBerkeley-DS/2016_Fall/DATASCIW205/Lab4/crime_data/crimes.csv")
+>>> print crimedata.count()
+5862796 
+
+>>> crimedata.first()
+u'ID,Case Number,Date,Block,IUCR,Primary Type,Description,Location Description,Arrest,Domestic,Beat,District,Ward,Community Area,FBI Code,X Coordinate,Y Coordinate,Year,Updated On,Latitude,Longitude,Location'
+>>> crimedata.take(10)
+[u'ID,Case Number,Date,Block,IUCR,Primary Type,Description,Location Description,Arrest,Domestic,Beat,District,Ward,Community Area,FBI Code,X Coordinate,Y Coordinate,Year,Updated On,Latitude,Longitude,Location', u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"', u'10184607,HY372206,08/06/2015 11:55:00 PM,035XX S RHODES AVE,0486,BATTERY,DOMESTIC BATTERY SIMPLE,APARTMENT,false,true,0212,002,4,35,08B,1180132,1881331,2015,08/13/2015 12:57:42 PM,41.82964147,-87.614598779,"(41.82964147, -87.614598779)"', u'10190430,HY374464,08/06/2015 11:50:00 PM,047XX W HARRISON ST,0430,BATTERY,AGGRAVATED: OTHER DANG WEAPON,GAS STATION,false,false,1131,011,24,25,04B,1144626,1896881,2015,08/13/2015 12:57:42 PM,41.873054046,-87.744479572,"(41.873054046, -87.744479572)"', u'10185476,HY372534,08/06/2015 11:50:00 PM,030XX W FLETCHER ST,0620,BURGLARY,UNLAWFUL ENTRY,RESIDENCE-GARAGE,false,false,1411,014,33,21,05,1155716,1920830,2015,08/13/2015 12:57:42 PM,41.938556204,-87.703116637,"(41.938556204, -87.703116637)"', u'10184561,HY372224,08/06/2015 11:50:00 PM,034XX S RACINE AVE,0820,THEFT,$500 AND UNDER,PARKING LOT/GARAGE(NON.RESID.),true,false,0913,009,11,60,06,1168866,1881886,2015,08/13/2015 12:57:42 PM,41.831415654,-87.655917306,"(41.831415654, -87.655917306)"', u'10184518,HY372189,08/06/2015 11:45:00 PM,038XX S HONORE ST,1310,CRIMINAL DAMAGE,TO PROPERTY,RESIDENCE,false,false,0912,009,11,59,14,1164617,1879167,2015,08/13/2015 12:57:42 PM,41.824045312,-87.671584096,"(41.824045312, -87.671584096)"', u'10184620,HY372195,08/06/2015 11:45:00 PM,011XX N WELLS ST,0810,THEFT,OVER $500,TAXICAB,false,false,1824,018,43,8,06,1174556,1907722,2015,08/13/2015 12:57:42 PM,41.902186365,-87.634268385,"(41.902186365, -87.634268385)"', u'10184573,HY372193,08/06/2015 11:44:00 PM,012XX W 82ND ST,0460,BATTERY,SIMPLE,SIDEWALK,false,false,0613,006,21,71,08B,1169200,1850440,2015,08/13/2015 12:57:42 PM,41.74511691,-87.655601328,"(41.74511691, -87.655601328)"', u'10184606,HY372191,08/06/2015 11:40:00 PM,048XX S INDIANA AVE,0486,BATTERY,DOMESTIC BATTERY SIMPLE,ALLEY,false,true,0224,002,3,38,08B,1178377,1872994,2015,08/13/2015 12:57:42 PM,41.80680416,-87.621291256,"(41.80680416, -87.621291256)"']
+
+>>> noHeaderCrimedata = crimedata.zipWithIndex().filter(lambda (row,index): index > 0).keys()
+>>> noHeaderCrimedata.first()
+u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"'
+>>> noHeaderCrimedata.count()
+5862795  
+
+>>> def remove_header(itr_index, itr):
+...     if itr_index == 0: 
+...         return iter(list(itr)[1:]) 
+...     else:
+...         return itr
+... 
+>>> noHeaderCrimeData2 = crimedata.mapPartitionsWithIndex(remove_header)
+>>> noHeaderCrimedata.first()
+u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"'
+>>> noHeaderCrimedata.count()
+5862795 
+
+STEP 3: FILTER RECORDS AND STRUCTURES
+
+>>> narcoticsCrimes = noHeaderCrimedata.filter(lambda x: "NARCOTICS" in x)
+>>> narcoticsCrimes.count()
+663712  
+
+>>> narcoticsCrimes.take(20)
+[u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"', u'10184524,HY372200,08/06/2015 11:40:00 PM,002XX W 88TH ST,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,STREET,true,false,0634,006,21,49,18,1175866,1846548,2015,08/13/2015 12:57:42 PM,41.7342901,-87.631292466,"(41.7342901, -87.631292466)"', u'10184554,HY372217,08/06/2015 11:38:00 PM,078XX S PAULINA ST,2028,NARCOTICS,POSS: SYNTHETIC DRUGS,STREET,true,false,0611,006,17,71,18,1166342,1852418,2015,08/13/2015 12:57:42 PM,41.750606117,-87.666017303,"(41.750606117, -87.666017303)"', u'10184503,HY372179,08/06/2015 11:35:00 PM,019XX N MOZART ST,2022,NARCOTICS,POSS: COCAINE,STREET,true,false,1421,014,35,22,18,1157157,1912657,2015,08/13/2015 12:57:42 PM,41.916099694,-87.698043163,"(41.916099694, -87.698043163)"', u'10184527,HY372190,08/06/2015 11:32:00 PM,015XX W HOWARD ST,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,STREET,true,false,2422,024,49,1,18,1164729,1950306,2015,08/13/2015 12:57:42 PM,42.01925275,-87.669151816,"(42.01925275, -87.669151816)"', u'10184512,HY372194,08/06/2015 11:30:00 PM,054XX W NORTH AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,VEHICLE NON-COMMERCIAL,true,false,2532,025,37,25,18,1140150,1910150,2015,08/13/2015 12:57:42 PM,41.909548902,-87.760588145,"(41.909548902, -87.760588145)"', u'10184523,HY372175,08/06/2015 10:51:00 PM,038XX W NORTH AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,SIDEWALK,true,false,2535,025,30,23,18,1150304,1910396,2015,08/13/2015 12:57:42 PM,41.910031837,-87.723279946,"(41.910031837, -87.723279946)"', u'10184476,HY372146,08/06/2015 10:50:00 PM,0000X N KEELER AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,STREET,true,false,1115,011,28,26,18,1148430,1899795,2015,08/13/2015 12:57:42 PM,41.880977936,-87.730437982,"(41.880977936, -87.730437982)"', u'10184477,HY372136,08/06/2015 10:45:00 PM,053XX W CHICAGO AVE,1821,NARCOTICS,MANU/DEL:CANNABIS 10GM OR LESS,SIDEWALK,true,false,1524,015,37,25,18,1140456,1904773,2015,08/13/2015 12:57:42 PM,41.894788171,-87.759596124,"(41.894788171, -87.759596124)"', u'10184468,HY372144,08/06/2015 10:45:00 PM,002XX E 108TH ST,2028,NARCOTICS,POSS: SYNTHETIC DRUGS,STREET,true,false,0513,005,9,49,18,1179863,1833448,2015,08/13/2015 12:57:42 PM,41.698251605,-87.617048656,"(41.698251605, -87.617048656)"', u'10184465,HY372127,08/06/2015 10:28:00 PM,079XX S ASHLAND AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,GAS STATION,true,false,0611,006,21,71,18,1167009,1852265,2015,08/13/2015 12:57:42 PM,41.750172042,-87.66357746,"(41.750172042, -87.66357746)"', u'10184487,HY372141,08/06/2015 10:01:00 PM,059XX S MICHIGAN AVE,1812,NARCOTICS,POSS: CANNABIS MORE THAN 30GMS,APARTMENT,true,false,0232,002,20,40,18,1178136,1865583,2015,08/13/2015 12:57:42 PM,41.786473155,-87.622399953,"(41.786473155, -87.622399953)"', u'10184488,HY372134,08/06/2015 09:56:00 PM,077XX S SANGAMON ST,2024,NARCOTICS,POSS: HEROIN(WHITE),APARTMENT,true,false,0621,006,17,71,18,1171365,1853218,2015,08/13/2015 12:57:42 PM,41.752693042,-87.647587307,"(41.752693042, -87.647587307)"', u'10184422,HY372060,08/06/2015 09:30:00 PM,052XX N CANFIELD AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,ALLEY,true,false,1613,016,41,10,18,1122611,1933632,2015,08/13/2015 12:57:42 PM,41.974289808,-87.824508239,"(41.974289808, -87.824508239)"', u'10184429,HY372061,08/06/2015 09:30:00 PM,033XX W FLOURNOY ST,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,SIDEWALK,true,false,1134,011,24,27,18,1154319,1896798,2015,08/13/2015 12:57:42 PM,41.872638297,-87.70889391,"(41.872638297, -87.70889391)"', u'10184427,HY372068,08/06/2015 09:18:00 PM,027XX W LE MOYNE ST,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,STREET,true,false,1423,014,26,24,18,1158086,1909904,2015,08/13/2015 12:57:42 PM,41.908526309,-87.694705371,"(41.908526309, -87.694705371)"', u'10184388,HY372039,08/06/2015 09:15:00 PM,055XX N NORTHWEST HWY,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,ALLEY,true,false,1622,016,45,11,18,1134995,1936221,2015,08/13/2015 12:57:42 PM,41.981183382,-87.778906209,"(41.981183382, -87.778906209)"', u'10184412,HY372034,08/06/2015 08:45:00 PM,028XX S AVERS AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,SIDEWALK,true,false,1031,010,22,30,18,1151215,1884655,2015,08/13/2015 12:57:42 PM,41.839377846,-87.720608322,"(41.839377846, -87.720608322)"', u'10184435,HY372066,08/06/2015 08:45:00 PM,046XX S HERMITAGE AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,"SCHOOL, PRIVATE, GROUNDS",true,false,0924,009,20,61,18,1165413,1874130,2015,08/13/2015 12:57:42 PM,41.810206364,-87.668806745,"(41.810206364, -87.668806745)"', u'10184509,HY372031,08/06/2015 08:30:00 PM,038XX W LEXINGTON ST,2024,NARCOTICS,POSS: HEROIN(WHITE),STREET,true,false,1133,011,24,26,18,1150832,1896381,2015,08/13/2015 12:57:42 PM,41.871562899,-87.721707266,"(41.871562899, -87.721707266)"']
+
+>>> narcoticsCrimeRecords = narcoticsCrimes.map(lambda r : r.split(","))
+>>> narcoticsCrimeRecords.first()
+[u'10184515', u'HY372204', u'08/06/2015 11:55:00 PM', u'033XX W DIVERSEY AVE', u'2027', u'NARCOTICS', u'POSS: CRACK', u'STREET', u'true', u'false', u'1412', u'014', u'35', u'22', u'18', u'1153440', u'1918377', u'2015', u'08/13/2015 12:57:42 PM', u'41.931870591', u'-87.711546895', u'"(41.931870591', u' -87.711546895)"']
+>>> narcoticsCrimeRecords.count()
+663712  
+
+In Step 3:
+SUBMISSION 1: Submit the first 10 rows of the unsorted and the sorted RDD to show that you successfully created both. Also explain the issue with the tuple and how to possibly correct it in the map/lambda function that was used to create the tuples.
+
+>>> narcoticsCrimeRecords.take(10)
+[
+[u'10184515', u'HY372204', u'08/06/2015 11:55:00 PM', u'033XX W DIVERSEY AVE', u'2027', u'NARCOTICS', u'POSS: CRACK', u'STREET', u'true', u'false', u'1412', u'014', u'35', u'22', u'18', u'1153440', u'1918377', u'2015', u'08/13/2015 12:57:42 PM', u'41.931870591', u'-87.711546895', u'"(41.931870591', u' -87.711546895)"'], 
+[u'10184524', u'HY372200', u'08/06/2015 11:40:00 PM', u'002XX W 88TH ST', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'0634', u'006', u'21', u'49', u'18', u'1175866', u'1846548', u'2015', u'08/13/2015 12:57:42 PM', u'41.7342901', u'-87.631292466', u'"(41.7342901', u' -87.631292466)"'], 
+[u'10184554', u'HY372217', u'08/06/2015 11:38:00 PM', u'078XX S PAULINA ST', u'2028', u'NARCOTICS', u'POSS: SYNTHETIC DRUGS', u'STREET', u'true', u'false', u'0611', u'006', u'17', u'71', u'18', u'1166342', u'1852418', u'2015', u'08/13/2015 12:57:42 PM', u'41.750606117', u'-87.666017303', u'"(41.750606117', u' -87.666017303)"'], 
+[u'10184503', u'HY372179', u'08/06/2015 11:35:00 PM', u'019XX N MOZART ST', u'2022', u'NARCOTICS', u'POSS: COCAINE', u'STREET', u'true', u'false', u'1421', u'014', u'35', u'22', u'18', u'1157157', u'1912657', u'2015', u'08/13/2015 12:57:42 PM', u'41.916099694', u'-87.698043163', u'"(41.916099694', u' -87.698043163)"'], 
+[u'10184527', u'HY372190', u'08/06/2015 11:32:00 PM', u'015XX W HOWARD ST', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'2422', u'024', u'49', u'1', u'18', u'1164729', u'1950306', u'2015', u'08/13/2015 12:57:42 PM', u'42.01925275', u'-87.669151816', u'"(42.01925275', u' -87.669151816)"'], 
+[u'10184512', u'HY372194', u'08/06/2015 11:30:00 PM', u'054XX W NORTH AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'VEHICLE NON-COMMERCIAL', u'true', u'false', u'2532', u'025', u'37', u'25', u'18', u'1140150', u'1910150', u'2015', u'08/13/2015 12:57:42 PM', u'41.909548902', u'-87.760588145', u'"(41.909548902', u' -87.760588145)"'],
+[u'10184523', u'HY372175', u'08/06/2015 10:51:00 PM', u'038XX W NORTH AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'SIDEWALK', u'true', u'false', u'2535', u'025', u'30', u'23', u'18', u'1150304', u'1910396', u'2015', u'08/13/2015 12:57:42 PM', u'41.910031837', u'-87.723279946', u'"(41.910031837', u' -87.723279946)"'], 
+[u'10184476', u'HY372146', u'08/06/2015 10:50:00 PM', u'0000X N KEELER AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'1115', u'011', u'28', u'26', u'18', u'1148430', u'1899795', u'2015', u'08/13/2015 12:57:42 PM', u'41.880977936', u'-87.730437982', u'"(41.880977936', u' -87.730437982)"'], 
+[u'10184477', u'HY372136', u'08/06/2015 10:45:00 PM', u'053XX W CHICAGO AVE', u'1821', u'NARCOTICS', u'MANU/DEL:CANNABIS 10GM OR LESS', u'SIDEWALK', u'true', u'false', u'1524', u'015', u'37', u'25', u'18', u'1140456', u'1904773', u'2015', u'08/13/2015 12:57:42 PM', u'41.894788171', u'-87.759596124', u'"(41.894788171', u' -87.759596124)"'], 
+[u'10184468', u'HY372144', u'08/06/2015 10:45:00 PM', u'002XX E 108TH ST', u'2028', u'NARCOTICS', u'POSS: SYNTHETIC DRUGS', u'STREET', u'true', u'false', u'0513', u'005', u'9', u'49', u'18', u'1179863', u'1833448', u'2015', u'08/13/2015 12:57:42 PM', u'41.698251605', u'-87.617048656', u'"(41.698251605', u' -87.617048656)"']]
+
+>>> narcoticsCrimeRecords.sortBy(lambda x: x[0], False).take(10)
+[
+[u'9999977', u'HY189948', u'03/18/2015 08:20:00 PM', u'004XX N SPRINGFIELD AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'1122', u'011', u'27', u'23', u'18', u'1150267', u'1902791', u'2015', u'03/25/2015 12:42:30 PM', u'41.889163673', u'-87.723614426', u'"(41.889163673', u' -87.723614426)"'], 
+[u'9999969', u'HY189942', u'03/18/2015 08:30:00 PM', u'045XX W WASHINGTON BLVD', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'1113', u'011', u'28', u'26', u'18', u'1146297', u'1900155', u'2015', u'03/25/2015 12:42:30 PM', u'41.882006669', u'-87.738261125', u'"(41.882006669', u' -87.738261125)"'], 
+[u'9999955', u'HY189927', u'03/18/2015 08:25:00 PM', u'011XX W 63RD ST', u'2028', u'NARCOTICS', u'POSS: SYNTHETIC DRUGS', u'STREET', u'true', u'false', u'0712', u'007', u'16', u'68', u'18', u'1169697', u'1863059', u'2015', u'03/25/2015 12:42:30 PM', u'41.779734314', u'-87.653414767', u'"(41.779734314', u' -87.653414767)"'], 
+[u'9999954', u'HY189914', u'03/18/2015 07:51:00 PM', u'044XX W IOWA ST', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'STREET', u'true', u'false', u'1111', u'011', u'37', u'23', u'18', u'1146290', u'1905659', u'2015', u'03/25/2015 12:42:30 PM', u'41.8971104', u'-87.738146641', u'"(41.8971104', u' -87.738146641)"'], 
+[u'9999950', u'HY189920', u'03/18/2015 08:32:00 PM', u'005XX E 115TH ST', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'SIDEWALK', u'true', u'false', u'0531', u'005', u'9', u'50', u'18', u'1181698', u'1828839', u'2015', u'03/25/2015 12:42:30 PM', u'41.685561802', u'-87.610471488', u'"(41.685561802', u' -87.610471488)"'], 
+[u'9999947', u'HY189876', u'03/18/2015 07:15:00 PM', u'055XX S MICHIGAN AVE', u'1812', u'NARCOTICS', u'POSS: CANNABIS MORE THAN 30GMS', u'STREET', u'true', u'false', u'0225', u'002', u'20', u'40', u'18', u'1178058', u'1868406', u'2015', u'03/25/2015 12:42:30 PM', u'41.794221511', u'-87.622600372', u'"(41.794221511', u' -87.622600372)"'], 
+[u'9999946', u'HY189905', u'03/18/2015 07:40:00 PM', u'024XX S CALIFORNIA AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'ALLEY', u'true', u'false', u'1033', u'010', u'12', u'30', u'18', u'1158057', u'1887332', u'2015', u'03/25/2015 12:42:30 PM', u'41.846587156', u'-87.695428188', u'"(41.846587156', u' -87.695428188)"'], 
+[u'9999930', u'HY189848', u'03/18/2015 07:26:00 PM', u'075XX S EXCHANGE AVE', u'1811', u'NARCOTICS', u'POSS: CANNABIS 30GMS OR LESS', u'SIDEWALK', u'true', u'false', u'0421', u'004', u'7', u'43', u'18', u'1195144', u'1855711', u'2015', u'03/25/2015 12:42:30 PM', u'41.75898089', u'-87.56036627', u'"(41.75898089', u' -87.56036627)"'], 
+[u'9999923', u'HY189906', u'03/18/2015 08:05:00 PM', u'025XX W 66TH ST', u'2028', u'NARCOTICS', u'POSS: SYNTHETIC DRUGS', u'SIDEWALK', u'true', u'false', u'0832', u'008', u'15', u'66', u'18', u'1160586', u'1860847', u'2015', u'03/25/2015 12:42:30 PM', u'41.773857105', u'-87.686877984', u'"(41.773857105', u' -87.686877984)"'], 
+[u'9999917', u'HY189889', u'03/18/2015 07:45:00 PM', u'036XX W CHICAGO AVE', u'2028', u'NARCOTICS', u'POSS: SYNTHETIC DRUGS', u'SIDEWALK', u'true', u'false', u'1112', u'011', u'27', u'23', u'18', u'1151962', u'1905054', u'2015', u'03/25/2015 12:42:30 PM', u'41.895340355', u'-87.71733', u'"(41.895340355', u' -87.71733)"']]
+
+The map/lambda function used to split up the csv into records based on the newline and fields based on the comma. This resulted in a list of lists within the RDD. The softBy function may be used to sort; in this case the ID field was sort and take the first ten records. This is not great way to sort when everything is treated like a string and some should be considered numbers or date/time. It would have been helpful to perhaps have a list of records that contain key-value pairs.
+
+STEP 4: KEY VALUES
+
+>>> narcoticsCrimeTuples = narcoticsCrimes.map(lambda x:(x.split(",")[0], x))
+>>> narcoticsCrimeTuples.count()
+663712  
+>>> narcoticsCrimeTuples.first()
+(u'10184515', u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"')
+>>> firstTuple=narcoticsCrimeTuples.first()
+>>> print firstTuple
+(u'10184515', u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"')
+
+>>> len(firstTuple)
+2
+
+>>> firstTuple[0]
+u'10184515'
+
+>>> firstTuple[1]
+u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"'
+
+There is one little problem with the tuple. Can you spot it? How should we change the map and lambda functions above to address that? This method preserves the original data but doesn't seem to make it useful. The first string tuple element is the ID, and the rest of the fields are contained in the second element as a string. At least the remaining fields may be split and manipulated as a string. Perhaps data frames would be useful to map the data into so sorting may be more controlled.
+
+>>> sorted=narcoticsCrimeTuples.sortByKey()
+>>> sorted.first() 
+(u'10000014', u'10000014,HY189846,03/18/2015 05:52:00 PM,107XX S EGGLESTON AVE,1822,NARCOTICS,MANU/DEL:CANNABIS OVER 10 GMS,RESIDENCE,true,false,2233,022,34,49,18,1175162,1833372,2015,03/25/2015 12:42:30 PM,41.698149046,-87.634263523,"(41.698149046, -87.634263523)"')
+
+>>> narcoticsCrimeTuples.first()
+(u'10184515', u'10184515,HY372204,08/06/2015 11:55:00 PM,033XX W DIVERSEY AVE,2027,NARCOTICS,POSS: CRACK,STREET,true,false,1412,014,35,22,18,1153440,1918377,2015,08/13/2015 12:57:42 PM,41.931870591,-87.711546895,"(41.931870591, -87.711546895)"')
+
+STEP 5: START SPARK SQL
+
+spark-sql> create table dummy (somedata varchar(500));
+Time taken: 1.861 seconds
+16/10/11 11:42:58 INFO CliDriver: Time taken: 1.861 seconds
+spark-sql> show tables;
+dummy	false
+Time taken: 0.176 seconds, Fetched 1 row(s)
+16/10/11 11:43:05 INFO CliDriver: Time taken: 0.176 seconds, Fetched 1 row(s)
+spark-sql> drop table dummy;
+Time taken: 2.203 seconds
+16/10/11 11:45:37 INFO CliDriver: Time taken: 2.203 seconds
+
+STEP 6: SPARK SQL TABLE LOADED WITH DATA FROM A CSV FILE
+
+spark-sql> create table Web_Session_Log
+         >   (DATETIME varchar(500), USERID varchar(500), SESSIONID varchar(500), PRODUCTID varchar(500), REFERERURL varchar(500))
+         >   row format delimited fields terminated by '\t'
+         >   stored as textfile;
+Time taken: 0.614 seconds
+16/10/11 11:59:00 INFO CliDriver: Time taken: 0.614 seconds
+
+spark-sql> show tables;
+web_session_log	false
+Time taken: 0.127 seconds, Fetched 1 row(s)
+16/10/11 11:59:04 INFO CliDriver: Time taken: 0.127 seconds, Fetched 1 row(s)
+
+spark-sql> describe web_session_log;
+datetime	string	NULL
+userid	string	NULL
+sessionid	string	NULL
+productid	string	NULL
+refererurl	string	NULL
+Time taken: 0.3 seconds, Fetched 5 row(s)
+16/10/11 11:59:15 INFO CliDriver: Time taken: 0.3 seconds, Fetched 5 row(s)
+
+spark-sql> LOAD DATA LOCAL INPATH "/Users/jcasper/Documents/Education/UCBerkeley-DS/2016_Fall/DATASCIW205/Lab4/weblog_lab.csv" INTO TABLE web_session_log;
+Time taken: 0.765 seconds
+16/10/11 12:02:38 INFO CliDriver: Time taken: 0.765 seconds
+
+spark-sql> select count(*) from web_session_log;
+40002
+Time taken: 3.466 seconds, Fetched 1 row(s)
+16/10/11 12:04:15 INFO CliDriver: Time taken: 3.466 seconds, Fetched 1 row(s)
+
+$ wc -l weblog_lab.csv
+40002 weblog_lab.csv
+
+spark-sql> select * from web_session_log where refererurl = "http://www.ebay.com" limit 10;
+2005-12-08 02:36:30	__RequestVerificationToken_Lw__=13233	;+.ASPXAUTH=H7HTS9Q9CC8ZXSERD	/product/MVI9HHP8A	http://www.ebay.com
+2013-05-03 06:15:05	__RequestVerificationToken_Lw__=3BA1D	;+.ASPXAUTH=N41PO4EPE50XRBRPK	/product/6DVRETE0C	http://www.ebay.com
+2015-03-07 09:28:10	__RequestVerificationToken_Lw__=323AC	;+.ASPXAUTH=K1SNTY3UJGRQRLHCK	/product/GD3SDW1TA	http://www.ebay.com
+2005-08-10 23:11:45	__RequestVerificationToken_Lw__=1DD3C	;+.ASPXAUTH=4681QM0Q72WLPWFYX	/product/YGXQ90Z1Y	http://www.ebay.com
+2012-08-12 07:23:58	__RequestVerificationToken_Lw__=3AD23	;+.ASPXAUTH=LREO8TMSH04D2GE7M	/search/M6YZ29JA5	http://www.ebay.com
+2015-09-16 16:41:46	__RequestVerificationToken_Lw__=22DA3	;+.ASPXAUTH=ODD79MLRHOBJTNF3J	/product/1TPEZJXPV	http://www.ebay.com
+2010-10-30 18:42:10	__RequestVerificationToken_Lw__=2221C	;+.ASPXAUTH=O2FW5JJ0WHUFRF4VH	/search/IJTXBGB7L	http://www.ebay.com
+2004-09-14 17:25:27	__RequestVerificationToken_Lw__=DB333	;+.ASPXAUTH=9IAO311QV3B935DQS	/search/SOOG2281O	http://www.ebay.com
+2013-09-15 13:03:49	__RequestVerificationToken_Lw__=DBD21	;+.ASPXAUTH=SCQTL4ZE4Y2OFFZM5	/product/LRPBZBPTB	http://www.ebay.com
+2015-09-07 04:37:01	__RequestVerificationToken_Lw__=DCC2A	;+.ASPXAUTH=6V1R8D0FQLPLSXPOW	/search/HEC6W17O6	http://www.ebay.com
+Time taken: 0.834 seconds, Fetched 10 row(s)
+16/10/11 12:06:50 INFO CliDriver: Time taken: 0.834 seconds, Fetched 10 row(s)
+
+spark-sql> select count(*) from web_session_log where refererurl = "http://www.ebay.com";
+3943
+Time taken: 0.781 seconds, Fetched 1 row(s)
+16/10/11 12:08:22 INFO CliDriver: Time taken: 0.781 seconds, Fetched 1 row(s)
+
+In Step 6 (NOT 5):
+SUBMISSION 2: Submit the number of rows returned by the select on eBay entries: 3943
+
+STEP 7: ACCESSING SPARK SQL IN PYTHON CODE
+
+>>> sqlContext = SQLContext(sc)
+>>> sqlContext
+<pyspark.sql.context.SQLContext object at 0x107742450>
+
+>>> lines = sc.textFile('file:///Users/jcasper/Documents/Education/UCBerkeley-DS/2016_Fall/DATASCIW205/Lab4/weblog_lab.csv')
+>>> parts = lines.map(lambda l: l.split('\t'))
+>>> Web_Session_Log = parts.map(lambda p: (p[0], p[1], p[2], p[3], p[4]))
+>>> schemaString = 'DATETIME USERID SESSIONID PRODUCTID REFERERURL'
+>>> from pyspark.sql.types import *
+>>> fields = [StructField(field_name, StringType(), True) for field_name in schemaString.split()]
+>>> schema = StructType(fields)
+>>> schemaWebData = sqlContext.createDataFrame(Web_Session_Log, schema)
+>>> schemaWebData.registerTempTable('Web_Session_Log')
+>>> results = sqlContext.sql('SELECT count(*) FROM Web_Session_Log')
+>>> results.show()
++--------+                                                                      
+|count(1)|
++--------+
+|   40002|
++--------+
+>>> results2 = sqlContext.sql('SELECT count(*) FROM Web_Session_Log where REFERERURL = "http://www.ebay.com"')
+>>> results2.show()
++--------+                                                                      
+|count(1)|
++--------+
+|    3943|
++--------+
+
+In Step 7 (NOT 6):
+SUBMISSION 2: Submit the number of rows returned by the select on eBay entries: 3943
+SUBMISSION 3: Submit the number returned in the DataFrame of the result.show() command: 40002
+
+>>> results3 = sqlContext.sql('SELECT * FROM Web_Session_Log limit 10')
+>>> results3.show()
++-------------------+--------------------+--------------------+------------------+--------------------+
+|           DATETIME|              USERID|           SESSIONID|         PRODUCTID|          REFERERURL|
++-------------------+--------------------+--------------------+------------------+--------------------+
+|               date|              userid|           sessionid|         productid|          refererurl|
+|2008-01-31 15:54:25|__RequestVerifica...|;+.ASPXAUTH=C31HD...|/product/YJ29IOCVQ|  http://www.abc.com|
+|2005-12-08 02:36:30|__RequestVerifica...|;+.ASPXAUTH=H7HTS...|/product/MVI9HHP8A| http://www.ebay.com|
+|2015-06-07 23:27:58|__RequestVerifica...|;+.ASPXAUTH=58SZL...| /search/P5XKO3AC9|  http://www.abc.com|
+|2009-03-12 03:16:27|__RequestVerifica...|;+.ASPXAUTH=VBWZJ...|/product/A13025WBT|http://www.shophe...|
+|2014-07-23 08:36:03|__RequestVerifica...|;+.ASPXAUTH=VXBLE...| /search/5PI9XD6LZ|http://www.facebo...|
+|2002-12-30 08:42:09|__RequestVerifica...|;+.ASPXAUTH=YABJB...|/product/WS80XJFW2|  http://www.xyz.com|
+|2004-11-03 20:29:10|__RequestVerifica...|;+.ASPXAUTH=2F90N...|/product/OJ201IBUN|http://www.homesh...|
+|2012-01-26 12:39:57|__RequestVerifica...|;+.ASPXAUTH=SEWRR...|/product/OA3QGXF1U|  http://www.xyz.com|
+|2008-04-30 02:01:34|__RequestVerifica...|;+.ASPXAUTH=6OB10...| /search/K1IRBE1DU|  http://www.abc.com|
++-------------------+--------------------+--------------------+------------------+--------------------+
+
+$ vim mysql.py 
+$ spark-submit ./mysql.py 
++-------------------+--------------------+--------------------+------------------+--------------------+
+|           DATETIME|              USERID|           SESSIONID|         PRODUCTID|          REFERERURL|
++-------------------+--------------------+--------------------+------------------+--------------------+
+|               date|              userid|           sessionid|         productid|          refererurl|
+|2008-01-31 15:54:25|__RequestVerifica...|;+.ASPXAUTH=C31HD...|/product/YJ29IOCVQ|  http://www.abc.com|
+|2005-12-08 02:36:30|__RequestVerifica...|;+.ASPXAUTH=H7HTS...|/product/MVI9HHP8A| http://www.ebay.com|
+|2015-06-07 23:27:58|__RequestVerifica...|;+.ASPXAUTH=58SZL...| /search/P5XKO3AC9|  http://www.abc.com|
+|2009-03-12 03:16:27|__RequestVerifica...|;+.ASPXAUTH=VBWZJ...|/product/A13025WBT|http://www.shophe...|
+|2014-07-23 08:36:03|__RequestVerifica...|;+.ASPXAUTH=VXBLE...| /search/5PI9XD6LZ|http://www.facebo...|
+|2002-12-30 08:42:09|__RequestVerifica...|;+.ASPXAUTH=YABJB...|/product/WS80XJFW2|  http://www.xyz.com|
+|2004-11-03 20:29:10|__RequestVerifica...|;+.ASPXAUTH=2F90N...|/product/OJ201IBUN|http://www.homesh...|
+|2012-01-26 12:39:57|__RequestVerifica...|;+.ASPXAUTH=SEWRR...|/product/OA3QGXF1U|  http://www.xyz.com|
+|2008-04-30 02:01:34|__RequestVerifica...|;+.ASPXAUTH=6OB10...| /search/K1IRBE1DU|  http://www.abc.com|
+|2003-08-23 09:44:43|__RequestVerifica...|;+.ASPXAUTH=1NRGS...|/product/ANGEKDMKM|http://www.shophe...|
+|2008-04-09 01:24:24|__RequestVerifica...|;+.ASPXAUTH=2Y8NA...|/product/LC94NBS9A|http://www.facebo...|
+|2000-08-07 06:45:19|__RequestVerifica...|;+.ASPXAUTH=KS9LL...| /search/HDKWJ5ORV|http://www.facebo...|
+|2013-10-09 05:22:31|__RequestVerifica...|;+.ASPXAUTH=UA1WH...| /search/5LPS3BTJI|http://www.facebo...|
+|2006-07-31 08:12:44|__RequestVerifica...|;+.ASPXAUTH=GDVM0...| /search/BW80TIDQP|  http://www.xyz.com|
+|2014-07-27 13:23:18|__RequestVerifica...|;+.ASPXAUTH=OY5S5...| /search/D5S8HFH9D|http://www.facebo...|
+|2001-01-10 18:23:03|__RequestVerifica...|;+.ASPXAUTH=VMOYI...|/product/I8VLXARNQ|  http://www.xyz.com|
+|2011-09-24 21:28:13|__RequestVerifica...|;+.ASPXAUTH=SDVEA...| /search/S44PIHRYX|http://www.shophe...|
+|2008-09-19 02:52:53|__RequestVerifica...|;+.ASPXAUTH=7NEBV...| /search/CX28DBZYW|http://www.shophe...|
+|2006-03-01 20:10:27|__RequestVerifica...|;+.ASPXAUTH=K58W1...|/product/GG8EXER8K|http://www.amazon...|
++-------------------+--------------------+--------------------+------------------+--------------------+
+only showing top 20 rows
+
+STEP 8: CACHING TABLES AND UNCACHING TABLES
+
+>>> output = sqlContext.sql('SELECT * FROM Web_Session_Log where REFERERURL = "http://www.ebay.com"')
+>>> output.registerTempTable('ebay')
+>>> sqlContext.cacheTable('ebay')
+>>> sqlContext.sql("SELECT count(*) FROM ebay").collect()
+[Row(count(1)=3943)]  
+>>> sqlContext.uncacheTable('ebay')
+>>> sqlContext.sql("SELECT count(*) FROM ebay").collect()
+[Row(count(1)=3943)] 
+
+REFERENCES
+
+https://spark.apache.org/docs/latest/api/python/pyspark.rdd.RDD-class.html#takeOrdered
+http://spark.apache.org/docs/latest/api/python/pyspark.sql.html
